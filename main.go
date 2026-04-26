@@ -27,23 +27,9 @@ func main() {
 		execute: make(map[string]func(*state, command) error),
 	}
 
-	appCommands.register(
-		"login", func(appState *state, cmd command) error {
-			if len(cmd.args) < 1 {
-				log.Fatalln("Not enough arguments for login.")
-			}
-			return handlerLogin(appState, cmd)
-		},
-	)
-
-	appCommands.register(
-		"register", func(appState *state, cmd command) error {
-			if len(cmd.args) < 1 {
-				log.Fatalln("Not enough arguments for login.")
-			}
-			return handlerRegister(appState, cmd)
-		},
-	)
+	appCommands.register("login", handlerLogin)
+	appCommands.register("register", handlerRegister)
+	appCommands.register("reset", handlerReset)
 
 	if len(os.Args) < 2 {
 		log.Fatalln("No command given.")
@@ -54,7 +40,9 @@ func main() {
 		os.Args[2:],
 	}
 
-	appCommands.run(&appState, nowCommand)
+	if err := appCommands.run(&appState, nowCommand); err != nil {
+		log.Fatalln(err)
+	}
 
-	fmt.Println("Gator started.\n", appState.config)
+	fmt.Printf("Gator started.\nconfig: %v\n", appState.config)
 }

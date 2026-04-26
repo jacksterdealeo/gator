@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gator/internal/database"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,7 +16,6 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("No args given.")
 	}
 	if _, err := s.db.GetUser(context.Background(), cmd.args[0]); err != nil {
-		// log.Fatalf("User \"%v\" does not exist.\n", cmd.args[0])
 		return err
 	}
 	if err := s.config.SetUser(cmd.args[0]); err != nil {
@@ -32,7 +32,6 @@ func handlerRegister(s *state, cmd command) error {
 	if _, err := s.db.GetUser(context.Background(), cmd.args[0]); err != nil {
 		// User does not exist.
 	} else {
-		// log.Fatalln("User already exists.")
 		return fmt.Errorf("User already exists.")
 	}
 	u, err := s.db.CreateUser(context.Background(),
@@ -49,6 +48,24 @@ func handlerRegister(s *state, cmd command) error {
 	fmt.Printf("User %v has been created.\n", cmd.args[0])
 	handlerLogin(s, cmd)
 	log.Printf("DEBUG ~ User: %v\n", u)
+	return nil
+}
+
+func handlerGetUsers(s *state, _ command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return err
+	}
+	var userList strings.Builder
+	for _, u := range users {
+		fmt.Fprintf(&userList, "* %v", u.Name)
+		if u.Name == s.config.CurrentUserName {
+			fmt.Fprintf(&userList, " (current)")
+		}
+		fmt.Fprintf(&userList, "\n")
+	}
+
+	fmt.Print(userList.String())
 	return nil
 }
 

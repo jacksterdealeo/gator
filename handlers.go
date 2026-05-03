@@ -75,3 +75,12 @@ func handlerReset(s *state, _ command) error {
 	}
 	return nil
 }
+
+func handlerAggregator(s *state, cmd command) error {
+	a, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return err
+	}
+	fmt.Println(a)
+	return nil
+}

@@ -31,6 +31,7 @@ func main() {
 	appCommands.register("register", handlerRegister)
 	appCommands.register("reset", handlerReset)
 	appCommands.register("users", handlerGetUsers)
+	appCommands.register("agg", handlerAggregator)
 
 	if len(os.Args) < 2 {
 		log.Fatalln("No command given.")

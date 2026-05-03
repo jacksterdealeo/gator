@@ -84,3 +84,30 @@ func handlerAggregator(s *state, cmd command) error {
 	fmt.Println(a)
 	return nil
 }
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.args) < 2 {
+		return fmt.Errorf("Not enough args given. (need name and url)")
+	}
+	nameOfFeed := cmd.args[0]
+	urlOfFeed := cmd.args[1]
+
+	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	newFeed, err := s.db.CreateFeed(context.Background(),
+		database.CreateFeedParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Name:      nameOfFeed,
+			Url:       urlOfFeed,
+			UserID:    dbUser.ID,
+		})
+
+	fmt.Println(newFeed)
+
+	return nil
+}

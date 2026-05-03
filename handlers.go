@@ -111,3 +111,23 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	var feedList strings.Builder
+	for _, f := range feeds {
+		usr, err := s.db.GetUserByID(context.Background(), f.UserID)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(&feedList, "* %v\n  %v\n  %v\n",
+			f.Name, f.Url, usr.Name)
+	}
+
+	fmt.Print(feedList.String())
+	return nil
+}

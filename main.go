@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"gator/internal/config"
 	"gator/internal/database"
 	"log"
@@ -33,6 +32,7 @@ func main() {
 	appCommands.register("users", handlerGetUsers)
 	appCommands.register("agg", handlerAggregator)
 	appCommands.register("addfeed", handlerAddFeed)
+	appCommands.register("feeds", handlerFeeds)
 
 	if len(os.Args) < 2 {
 		log.Fatalln("No command given.")
@@ -47,5 +47,5 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("Gator started.\nconfig: %v\n", appState.config)
+	// fmt.Fprintf(os.Stderr, "Gator started.\nconfig: %v\n", appState.config)
 }

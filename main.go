@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"gator/internal/config"
 	"gator/internal/database"
 	"log"
@@ -22,17 +23,31 @@ func main() {
 	dbQueries := database.New(db)
 	appState := state{dbQueries, conf}
 
-	appCommands := commands{
+	appCmds := commands{
 		execute: make(map[string]func(*state, command) error),
 	}
+	appCmds.register("login", handlerLogin)
+	appCmds.register("register", handlerRegister)
+	appCmds.register("reset", handlerReset)
+	appCmds.register("users", handlerGetUsers)
+	appCmds.register("agg", handlerAggregator)
+	appCmds.register("addfeed", handlerAddFeed)
+	appCmds.register("feeds", handlerFeeds)
+	appCmds.register("follow", handlerFollow)
+	appCmds.register("following", handlerFollowing)
 
-	appCommands.register("login", handlerLogin)
-	appCommands.register("register", handlerRegister)
-	appCommands.register("reset", handlerReset)
-	appCommands.register("users", handlerGetUsers)
-	appCommands.register("agg", handlerAggregator)
-	appCommands.register("addfeed", handlerAddFeed)
-	appCommands.register("feeds", handlerFeeds)
+	helpCmd := func(s *state, cmd command) error {
+		if len(cmd.args) >= 1 {
+			fmt.Printf(" ~ %v : %v\n", cmd.args[0], helpDocs[cmd.args[0]])
+			return nil
+		}
+		fmt.Println("Here are all the avalible commands:")
+		for command, _ := range appCmds.execute {
+			fmt.Printf(" ~ %v: %v\n", command, helpDocs[command])
+		}
+		return nil
+	}
+	appCmds.register("help", helpCmd)
 
 	if len(os.Args) < 2 {
 		log.Fatalln("No command given.")
@@ -43,7 +58,7 @@ func main() {
 		os.Args[2:],
 	}
 
-	if err := appCommands.run(&appState, nowCommand); err != nil {
+	if err := appCmds.run(&appState, nowCommand); err != nil {
 		log.Fatalln(err)
 	}
 

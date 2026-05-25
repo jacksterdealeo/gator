@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gator/internal/database"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -87,7 +88,7 @@ func handlerAggregator(s *state, cmd command) error {
 
 func handlerAddFeed(s *state, cmd command) error {
 	if len(cmd.args) < 2 {
-		return fmt.Errorf("Not enough args given. (need name and url)")
+		return fmt.Errorf("Not enough args given. (need name and URL)")
 	}
 	nameOfFeed := cmd.args[0]
 	urlOfFeed := cmd.args[1]
@@ -106,6 +107,19 @@ func handlerAddFeed(s *state, cmd command) error {
 			Url:       urlOfFeed,
 			UserID:    dbUser.ID,
 		})
+
+	newFollow, err := s.db.CreateFeedFollow(context.Background(),
+		database.CreateFeedFollowParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			UserID:    dbUser.ID,
+			FeedID:    newFeed.ID,
+		})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow[0].FeedName, newFollow[0].UserName)
 
 	fmt.Println(newFeed)
 
@@ -129,5 +143,55 @@ func handlerFeeds(s *state, cmd command) error {
 	}
 
 	fmt.Print(feedList.String())
+	return nil
+}
+
+func handlerFollow(s *state, cmd command) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("No arguments given. (need URL)")
+	}
+	followUrl := cmd.args[0]
+
+	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feedByURL, err := s.db.GetFeedFromURL(context.Background(), followUrl)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Feed likely wasn't registered with <addfeed>!")
+		return err
+	}
+
+	newFollow, err := s.db.CreateFeedFollow(context.Background(),
+		database.CreateFeedFollowParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			UserID:    dbUser.ID,
+			FeedID:    feedByURL.ID,
+		})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow[0].FeedName, newFollow[0].UserName)
+
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command) error {
+	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feedsFollowing, err := s.db.GetFeedFollowsForUser(context.Background(),
+		dbUser.ID)
+	if err != nil {
+		return err
+	}
+	for _, f := range feedsFollowing {
+		fmt.Println(f.FeedName)
+	}
 	return nil
 }

@@ -3,10 +3,7 @@ package main
 import (
 	"context"
 	"gator/internal/database"
-	"net/http"
 )
-
-type authenticatedHandler func(http.ResponseWriter, *http.Request, *database.User) error
 
 func middlewareLoggedIn(
 	handler func(s *state, cmd command, user database.User) error,

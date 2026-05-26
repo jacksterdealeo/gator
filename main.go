@@ -31,10 +31,10 @@ func main() {
 	appCmds.register("reset", handlerReset)
 	appCmds.register("users", handlerGetUsers)
 	appCmds.register("agg", handlerAggregator)
-	appCmds.register("addfeed", handlerAddFeed)
 	appCmds.register("feeds", handlerFeeds)
-	appCmds.register("follow", handlerFollow)
-	appCmds.register("following", handlerFollowing)
+	appCmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
+	appCmds.register("follow", middlewareLoggedIn(handlerFollow))
+	appCmds.register("following", middlewareLoggedIn(handlerFollowing))
 
 	helpCmd := func(s *state, cmd command) error {
 		if len(cmd.args) >= 1 {

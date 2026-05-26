@@ -86,17 +86,12 @@ func handlerAggregator(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, dbUser database.User) error {
 	if len(cmd.args) < 2 {
 		return fmt.Errorf("Not enough args given. (need name and URL)")
 	}
 	nameOfFeed := cmd.args[0]
 	urlOfFeed := cmd.args[1]
-
-	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	newFeed, err := s.db.CreateFeed(context.Background(),
 		database.CreateFeedParams{
@@ -146,16 +141,11 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, dbUser database.User) error {
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("No arguments given. (need URL)")
 	}
 	followUrl := cmd.args[0]
-
-	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	feedByURL, err := s.db.GetFeedFromURL(context.Background(), followUrl)
 	if err != nil {
@@ -179,12 +169,7 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-	dbUser, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
-	if err != nil {
-		return err
-	}
-
+func handlerFollowing(s *state, cmd command, dbUser database.User) error {
 	feedsFollowing, err := s.db.GetFeedFollowsForUser(context.Background(),
 		dbUser.ID)
 	if err != nil {

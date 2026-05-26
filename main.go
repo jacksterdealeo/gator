@@ -35,6 +35,7 @@ func main() {
 	appCmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	appCmds.register("follow", middlewareLoggedIn(handlerFollow))
 	appCmds.register("following", middlewareLoggedIn(handlerFollowing))
+	appCmds.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
 	helpCmd := func(s *state, cmd command) error {
 		if len(cmd.args) >= 1 {

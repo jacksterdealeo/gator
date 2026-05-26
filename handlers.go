@@ -180,3 +180,19 @@ func handlerFollowing(s *state, cmd command, dbUser database.User) error {
 	}
 	return nil
 }
+
+func handlerUnfollow(s *state, cmd command, dbUser database.User) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("Not enough args given. (URL)")
+	}
+	err := s.db.DeleteFeedFollow(
+		context.Background(),
+		database.DeleteFeedFollowParams{
+			Name: dbUser.Name,
+			Url:  cmd.args[0],
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}

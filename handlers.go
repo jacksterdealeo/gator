@@ -77,13 +77,25 @@ func handlerReset(s *state, _ command) error {
 	return nil
 }
 
-func handlerAggregator(s *state, cmd command) error {
-	a, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+func handlerAggregator(s *state, cmd command, dbUser database.User) error {
+	var err error
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("Not enough args given. (need time_between_reqs)")
+	}
+	timeBetweenReqs, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
 		return err
 	}
-	fmt.Println(a)
-	return nil
+	fmt.Printf("Collecting feeds every %v\n",
+		timeBetweenReqs.String(),
+	)
+	ticker := time.NewTicker(timeBetweenReqs)
+	for ; ; <-ticker.C {
+		if err = scrapeFeeds(s, dbUser); err != nil {
+			return err
+		}
+	}
+	// only returns on err
 }
 
 func handlerAddFeed(s *state, cmd command, dbUser database.User) error {

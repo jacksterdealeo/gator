@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
+	"fmt"
+	"gator/internal/database"
 	"html"
 	"io"
 	"net/http"
@@ -63,4 +65,32 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	}
 
 	return &feed, nil
+}
+
+/*
+This function only scrapes one feed at a time.
+This should be ran in a loop.
+*/
+func scrapeFeeds(s *state, dbUser database.User) error {
+	// Get the next feed to fetch from the DB.
+	feed, err := s.db.GetNextFeedToFetch(context.Background(), dbUser.ID)
+	if err != nil {
+		return err
+	}
+	// Fetch the feed using the URL (we already wrote this function)
+	rssFeed, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("RSS Channel: ", rssFeed.Channel.Title)
+	// Iterate over the items in the feed and print their titles to the console.
+	for _, item := range rssFeed.Channel.Item {
+		fmt.Println("RSS Item: ", item.Title)
+	}
+	// Mark it as fetched.
+	if err := s.db.MarkFeedFetched(context.Background(), feed.ID); err != nil {
+		return err
+	}
+	return nil
 }

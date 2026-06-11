@@ -6,9 +6,9 @@ var helpDocs = map[string]string{
 	"reset":    "This deletes all users.",
 	"users":    "This lists all users.",
 
-	"agg":     "UNFINISHED",
+	"agg":     "<Duration>: This starts the aggregation. (TODO: EXPLAIN)",
 	"addfeed": "<Name> <URL>: This adds the feed.",
-	"feeds":   "List all feeds for all users.",
+	"feeds":   "This lists all feeds for all users.",
 	"follow":  "<URL>: This follows a feed. Feed must be added first.",
 
 	"following": "Lists all the feeds the user is following.",

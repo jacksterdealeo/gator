@@ -27,6 +27,7 @@ func main() {
 		execute: make(map[string]func(*state, command) error),
 	}
 	appCmds.register("login", handlerLogin)
+	appCmds.register("browse", middlewareLoggedIn(handlerBrowse))
 	appCmds.register("register", handlerRegister)
 	appCmds.register("reset", handlerReset)
 	appCmds.register("users", handlerGetUsers)

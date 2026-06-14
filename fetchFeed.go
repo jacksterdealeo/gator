@@ -3,12 +3,17 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/xml"
-	"fmt"
 	"gator/internal/database"
 	"html"
 	"io"
+	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type RSSFeed struct {
@@ -83,11 +88,64 @@ func scrapeFeeds(s *state, dbUser database.User) error {
 		return err
 	}
 
-	fmt.Println("RSS Channel: ", rssFeed.Channel.Title)
-	// Iterate over the items in the feed and print their titles to the console.
-	for _, item := range rssFeed.Channel.Item {
-		fmt.Println("RSS Item: ", item.Title)
+	for _, post := range rssFeed.Channel.Item {
+		if len(post.Title) == 0 {
+			continue
+		}
+		postToCreate := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       post.Title,
+			Url:         post.Link,
+			Description: sql.NullString{String: post.Description, Valid: true},
+			PublishedAt: sql.NullTime{Time: time.Now(), Valid: false},
+			FeedID:      feed.ID,
+		}
+		if len(rssFeed.Channel.Description) == 0 {
+			postToCreate.Description.Valid = false
+		}
+		var timeFormats = []string{
+			// time.RFC1123Z seems to be most common?
+			time.RFC1123Z,
+			time.RFC1123,
+			time.RFC822Z,
+			time.RFC822,
+			time.Layout,
+			time.ANSIC,
+			time.UnixDate,
+			time.RubyDate,
+			time.RFC850,
+			time.RFC3339,
+			time.RFC3339Nano,
+		}
+		for _, timeFormat := range timeFormats {
+			t, err := time.Parse(timeFormat, post.PubDate)
+			if err != nil {
+				continue
+			}
+			postToCreate.PublishedAt = sql.NullTime{Time: t, Valid: true}
+			break
+		}
+		if !postToCreate.PublishedAt.Valid {
+			log.Println("ERR: Time could not be parsed")
+		}
+
+		if err := s.db.CreatePost(context.Background(), postToCreate); err != nil {
+			pqErr := err.(*pq.Error)
+			// 23505 is 'unique_violation' error.
+			if pqErr.Code != "23505" {
+				log.Println("ERR: pq err ", pqErr)
+			}
+		}
 	}
+
+	// fmt.Println("RSS Channel: ", rssFeed.Channel.Title)
+	// // Iterate over the items in the feed and print their titles to the console.
+	// for _, item := range rssFeed.Channel.Item {
+	// 	fmt.Println("RSS Item: ", item.Title)
+	// }
+
 	// Mark it as fetched.
 	if err := s.db.MarkFeedFetched(context.Background(), feed.ID); err != nil {
 		return err

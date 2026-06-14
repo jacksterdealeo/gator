@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"gator/internal/database"
-	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,7 +35,7 @@ func handlerRegister(s *state, cmd command) error {
 	} else {
 		return fmt.Errorf("User already exists.")
 	}
-	u, err := s.db.CreateUser(context.Background(),
+	usr, err := s.db.CreateUser(context.Background(),
 		database.CreateUserParams{
 			ID:        uuid.New(),
 			CreatedAt: time.Now(),
@@ -46,9 +46,8 @@ func handlerRegister(s *state, cmd command) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("User %v has been created.\n", cmd.args[0])
+	fmt.Printf("User %v has been created.\n", usr.Name)
 	handlerLogin(s, cmd)
-	log.Printf("DEBUG ~ User: %v\n", u)
 	return nil
 }
 
@@ -71,6 +70,17 @@ func handlerGetUsers(s *state, _ command) error {
 }
 
 func handlerReset(s *state, _ command) error {
+	fmt.Print("Are you sure you want to delete all the users (Y/n)? ")
+	var promptResponse string
+	_, err := fmt.Scanln(&promptResponse)
+	if err != nil {
+		fmt.Println("Couldn't understand you. Quitting.")
+		return err
+	}
+	if promptResponse != "Y" {
+		return nil
+	}
+
 	if err := s.db.ResetUsers(context.Background()); err != nil {
 		return err
 	}
@@ -126,7 +136,7 @@ func handlerAddFeed(s *state, cmd command, dbUser database.User) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow[0].FeedName, newFollow[0].UserName)
+	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow.FeedName, newFollow.UserName)
 
 	fmt.Println(newFeed)
 
@@ -176,7 +186,7 @@ func handlerFollow(s *state, cmd command, dbUser database.User) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow[0].FeedName, newFollow[0].UserName)
+	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow.FeedName, newFollow.UserName)
 
 	return nil
 }
@@ -206,5 +216,37 @@ func handlerUnfollow(s *state, cmd command, dbUser database.User) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, dbUser database.User) error {
+	// This takes one optional "limit" param. Default is 2 on boot.dev.
+	var limit int32 = 2
+	if len(cmd.args) >= 1 {
+		limitParsed, err := strconv.ParseInt(cmd.args[0], 10, 32)
+		if err != nil {
+			return err
+		}
+		limit = int32(limitParsed)
+	}
+
+	posts, err := s.db.GetPostsForUser(
+		context.Background(),
+		database.GetPostsForUserParams{
+			ID:    dbUser.ID,
+			Limit: limit,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, post := range posts {
+		fmt.Printf("Title: %v\n", post.Title)
+		fmt.Printf("Description: %v\n", post.Description.String)
+		fmt.Printf("URL: %v\n", post.Url)
+		fmt.Println()
+	}
+
 	return nil
 }

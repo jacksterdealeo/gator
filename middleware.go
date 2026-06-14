@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"gator/internal/database"
+
+	"github.com/jacksterdealeo/gator/internal/database"
 )
 
 func middlewareLoggedIn(

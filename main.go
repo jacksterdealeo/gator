@@ -3,10 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"gator/internal/config"
-	"gator/internal/database"
 	"log"
 	"os"
+
+	"github.com/jacksterdealeo/gator/internal/config"
+	"github.com/jacksterdealeo/gator/internal/database"
 
 	_ "github.com/lib/pq"
 )

@@ -1,4 +1,4 @@
-module gator
+module github.com/jacksterdealeo/gator
 
 go 1.25.3
 

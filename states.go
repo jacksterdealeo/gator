@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"gator/internal/config"
-	"gator/internal/database"
+
+	"github.com/jacksterdealeo/gator/internal/config"
+	"github.com/jacksterdealeo/gator/internal/database"
 )
 
 type state struct {

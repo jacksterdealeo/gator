@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"gator/internal/database"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jacksterdealeo/gator/internal/database"
 
 	"github.com/google/uuid"
 )
@@ -124,19 +125,24 @@ func handlerAddFeed(s *state, cmd command, dbUser database.User) error {
 			Url:       urlOfFeed,
 			UserID:    dbUser.ID,
 		})
-
-	newFollow, err := s.db.CreateFeedFollow(context.Background(),
-		database.CreateFeedFollowParams{
-			ID:        uuid.New(),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			UserID:    dbUser.ID,
-			FeedID:    newFeed.ID,
-		})
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow.FeedName, newFollow.UserName)
+
+	/*
+		newFollow, err := s.db.CreateFeedFollow(context.Background(),
+			database.CreateFeedFollowParams{
+				ID:        uuid.New(),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				UserID:    dbUser.ID,
+				FeedID:    newFeed.ID,
+			})
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Feed Name: %v\nUser Name: %v\n", newFollow.FeedName, newFollow.UserName)
+	*/
 
 	fmt.Println(newFeed)
 

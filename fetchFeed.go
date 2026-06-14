@@ -5,12 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/xml"
-	"gator/internal/database"
 	"html"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/jacksterdealeo/gator/internal/database"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
